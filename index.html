@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Longevidade · Urano Klock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --green:#1D9E75; --green-lt:#E1F5EE; --green-dk:#085041; --green-mid:#0F6E56;
+  --amber:#BA7517; --amber-lt:#FAEEDA; --amber-mid:#EF9F27;
+  --red:#A32D2D; --red-lt:#FCEBEB;
+  --blue:#185FA5; --blue-lt:#E6F1FB;
+  --border:rgba(0,0,0,0.07); --border2:rgba(0,0,0,0.12);
+  --text:#151515; --text2:#555; --text3:#999;
+  --bg:#F7F7F5; --surface:#FFFFFF;
+  --serif:'Instrument Serif',serif;
+  --sans:'Geist',sans-serif;
+  --mono:'Geist Mono',monospace;
+  --r:14px; --rlg:20px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+
+/* ── LAYOUT ── */
+.app{display:grid;grid-template-columns:256px 1fr;min-height:100vh;}
+
+/* ── SIDEBAR ── */
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow:hidden;}
+.logo{padding:1.75rem 1.5rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+.logo-icon{width:36px;height:36px;background:var(--green);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo-icon i{color:white;font-size:16px;}
+.logo-text{}
+.logo-name{font-family:var(--serif);font-size:18px;color:var(--text);line-height:1.1;}
+.logo-sub{font-size:10px;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-top:1px;}
+
+.nav-group{padding:.75rem .75rem 0;}
+.nav-label{font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:.5rem .75rem .25rem;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;cursor:pointer;font-size:13px;color:var(--text2);border:none;background:none;width:100%;text-align:left;transition:all .15s;}
+.nav-item i{width:16px;text-align:center;font-size:13px;opacity:.65;flex-shrink:0;}
+.nav-item:hover{background:var(--bg);color:var(--text);}
+.nav-item.active{background:var(--green-lt);color:var(--green-dk);font-weight:500;}
+.nav-item.active i{opacity:1;}
+
+.sidebar-footer{margin-top:auto;padding:1.25rem 1.5rem;border-top:1px solid var(--border);}
+.profile{display:flex;align-items:center;gap:10px;}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--green-lt);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:var(--green-dk);font-family:var(--mono);flex-shrink:0;}
+.profile-name{font-size:13px;font-weight:500;color:var(--text);}
+.profile-age{font-size:11px;color:var(--text3);}
+
+/* ── MAIN ── */
+.main{overflow-y:auto;}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:.875rem 2rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
+.page-title{font-family:var(--serif);font-size:20px;color:var(--text);font-style:italic;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.badge-date{font-size:11px;font-family:var(--mono);background:var(--green-lt);color:var(--green-dk);padding:4px 10px;border-radius:999px;}
+.content{padding:2rem;max-width:1080px;}
+
+/* ── PAGES ── */
+.page{display:none;animation:fadeUp .3s ease both;}
+.page.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+/* ── HERO ── */
+.hero{display:grid;grid-template-columns:220px 1fr;background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);overflow:hidden;margin-bottom:1.5rem;}
+.hero-left{padding:2rem 1.75rem;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;border-right:1px solid var(--border);background:#F9FFFE;}
+.hero-score-label{font-size:13px;color:var(--green-mid);font-weight:500;}
+.hero-score-sub{font-size:11px;color:var(--text3);}
+.hero-right{padding:2rem 2.25rem;display:flex;flex-direction:column;justify-content:space-between;}
+.hero-name{font-family:var(--serif);font-size:26px;color:var(--text);margin-bottom:2px;}
+.hero-meta{font-size:12px;color:var(--text3);font-family:var(--mono);margin-bottom:.875rem;}
+.hero-desc{font-size:13px;color:var(--text2);line-height:1.7;margin-bottom:1.5rem;max-width:500px;}
+.kpi-strip{display:flex;gap:10px;flex-wrap:wrap;}
+.kpi{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:.75rem 1rem;min-width:108px;}
+.kpi-l{font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;}
+.kpi-v{font-size:20px;font-weight:500;font-family:var(--mono);color:var(--text);letter-spacing:-.02em;}
+.kpi-tag{font-size:10px;font-weight:500;padding:2px 8px;border-radius:999px;display:inline-block;margin-top:4px;}
+.tok{background:#DCFCE7;color:#15803D;} .twarn{background:#FEF3C7;color:#92400E;} .tbad{background:#FEE2E2;color:#991B1B;}
+
+/* ── GRID ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.25rem;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:1.25rem;}
+
+/* ── CARD ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rlg);padding:1.5rem;}
+.ct{font-size:13px;font-weight:500;color:var(--text);margin-bottom:.4rem;}
+.cs{font-size:12px;color:var(--text3);margin-bottom:1rem;line-height:1.5;}
+
+/* ── METRIC ROWS ── */
+.mr{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+.mr:last-child{border-bottom:none;}
+.mr-ic{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.mr-ic i{font-size:12px;}
+.mr-ic-ok{background:#DCFCE7;} .mr-ic-ok i{color:#15803D;}
+.mr-ic-warn{background:#FEF3C7;} .mr-ic-warn i{color:#92400E;}
+.mr-name{font-size:13px;color:var(--text);flex:1;}
+.mr-val{font-size:13px;font-weight:500;font-family:var(--mono);}
+.mv-ok{color:var(--green-mid);} .mv-warn{color:var(--amber);} .mv-bad{color:var(--red);}
+.mr-trend{font-size:11px;color:var(--text3);min-width:58px;text-align:right;font-family:var(--mono);}
+.tr-up{color:var(--red);} .tr-dn{color:var(--green);}
+
+/* ── SCORE BARS ── */
+.sb-row{margin-bottom:11px;}
+.sb-head{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;}
+.sb-label{color:var(--text2);}
+.sb-pct{font-weight:500;font-family:var(--mono);}
+.sb-track{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;}
+.sb-fill{height:6px;border-radius:3px;transition:width 1s cubic-bezier(.4,0,.2,1);}
+
+/* ── RANGE BAR ── */
+.rb-wrap{margin:1rem 0 .25rem;}
+.rb-track{height:8px;border-radius:4px;background:#EEEDE9;position:relative;}
+.rb-ok{position:absolute;top:0;height:8px;background:#DCFCE7;}
+.rb-warn{position:absolute;top:0;height:8px;background:#FEF3C7;}
+.rb-bad{position:absolute;top:0;height:8px;background:#FEE2E2;border-radius:0 4px 4px 0;}
+.rb-dot{position:absolute;top:-5px;width:18px;height:18px;border-radius:50%;border:3px solid white;transform:translateX(-50%);box-shadow:0 1px 4px rgba(0,0,0,.15);}
+.rb-prev{position:absolute;top:-3px;width:14px;height:14px;border-radius:50%;border:2.5px solid white;transform:translateX(-50%);background:#D1D5DB;}
+.rb-labels{display:flex;justify-content:space-between;font-size:10px;font-family:var(--mono);color:var(--text3);margin-top:5px;}
+
+/* ── CHARTS ── */
+.cw{position:relative;width:100%;}
+.ch160{height:160px;} .ch180{height:180px;} .ch200{height:200px;} .ch260{height:260px;}
+
+/* ── LEGEND ── */
+.leg-row{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--text3);margin-bottom:8px;}
+.leg{display:flex;align-items:center;gap:5px;}
+.leg-sq{width:10px;height:10px;border-radius:2px;}
+
+/* ── BODY SECTION ── */
+.body-visual{display:flex;gap:1.5rem;align-items:flex-start;margin-bottom:1rem;}
+.bstats{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.bs{background:var(--bg);border-radius:10px;padding:.75rem;}
+.bs-l{font-size:10px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;}
+.bs-v{font-size:17px;font-weight:500;letter-spacing:-.02em;font-family:var(--mono);}
+.bs-r{font-size:11px;color:var(--text3);margin-top:1px;}
+.comp-bar{display:flex;height:22px;border-radius:6px;overflow:hidden;margin:12px 0 6px;}
+.comp-m{background:var(--green);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:white;}
+.comp-f{background:var(--amber-mid);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:white;}
+
+/* ── FAIXA ── */
+.faixa{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-radius:12px;overflow:hidden;margin:10px 0;text-align:center;}
+.fc{padding:14px 6px;}
+.fc-t{font-size:11px;font-weight:500;margin-bottom:3px;}
+.fc-v{font-size:15px;font-weight:500;letter-spacing:-.02em;font-family:var(--mono);}
+.fc-you{font-size:10px;margin-top:4px;font-weight:500;}
+
+/* ── TIPS ── */
+.tip-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:1.25rem;}
+.tip-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.25rem;}
+.tip-ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;}
+.tip-ic i{font-size:17px;}
+.tip-ic-red{background:#FEE2E2;} .tip-ic-red i{color:#991B1B;}
+.tip-ic-amber{background:#FEF3C7;} .tip-ic-amber i{color:#92400E;}
+.tip-ic-green{background:#DCFCE7;} .tip-ic-green i{color:#15803D;}
+.tip-pri{font-size:10px;font-weight:500;padding:3px 9px;border-radius:999px;display:inline-block;margin-bottom:8px;letter-spacing:.02em;}
+.pu{background:#FEE2E2;color:#991B1B;} .ph{background:#FEF3C7;color:#92400E;} .pm{background:#DCFCE7;color:#15803D;}
+.tip-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:5px;}
+.tip-body{font-size:12px;color:var(--text2);line-height:1.55;}
+.tip-meta{font-size:11px;color:var(--text3);margin-top:8px;font-family:var(--mono);}
+
+/* ── METAS ── */
+.meta-row{display:flex;align-items:center;gap:12px;font-size:13px;padding:9px 0;border-bottom:1px solid var(--border);}
+.meta-row:last-child{border-bottom:none;}
+.meta-ic{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.meta-ic i{font-size:12px;}
+.meta-name{color:var(--text2);flex:1;}
+.meta-now{font-family:var(--mono);font-weight:500;color:var(--amber);min-width:90px;}
+.meta-arr{color:var(--text3);font-size:12px;}
+.meta-goal{font-family:var(--mono);font-weight:500;color:var(--green-mid);min-width:110px;}
+
+/* ── TABLE ── */
+.ctable{width:100%;border-collapse:collapse;font-size:13px;}
+.ctable th{font-size:11px;font-weight:500;color:var(--text3);text-align:left;padding:8px 12px;border-bottom:1px solid var(--border);}
+.ctable td{padding:10px 12px;border-bottom:1px solid var(--border);}
+.ctable tr:last-child td{border-bottom:none;}
+.ctable tr:hover td{background:var(--bg);}
+.dup{color:var(--red);font-family:var(--mono);font-size:11px;}
+.ddn{color:var(--green);font-family:var(--mono);font-size:11px;}
+.dok{color:var(--text3);font-family:var(--mono);font-size:11px;}
+
+/* ── HAMBURGER BUTTON ── */
+.hamburger{display:none;align-items:center;justify-content:center;width:36px;height:36px;border:none;background:none;cursor:pointer;border-radius:8px;color:var(--text2);flex-shrink:0;}
+.hamburger:hover{background:var(--bg);}
+.hamburger i{font-size:18px;}
+
+/* ── MOBILE OVERLAY ── */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:99;backdrop-filter:blur(2px);}
+.sidebar-overlay.open{display:block;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .app{grid-template-columns:1fr;}
+  .sidebar{
+    display:flex;
+    position:fixed;
+    top:0;left:0;
+    height:100vh;
+    width:272px;
+    z-index:100;
+    transform:translateX(-100%);
+    transition:transform .25s cubic-bezier(.4,0,.2,1);
+    box-shadow:4px 0 24px rgba(0,0,0,0.12);
+  }
+  .sidebar.open{transform:translateX(0);}
+  .hamburger{display:flex;}
+  .g2,.g3,.tip-grid{grid-template-columns:1fr;}
+  .hero{grid-template-columns:1fr;}
+  .hero-left{border-right:none;border-bottom:1px solid var(--border);}
+  .content{padding:1rem;}
+  .topbar{padding:.75rem 1rem;}
+  .kpi-strip{gap:7px;}
+  .kpi{min-width:90px;padding:.6rem .75rem;}
+  .kpi-v{font-size:17px;}
+  .ctable{font-size:12px;}
+  .ctable th,.ctable td{padding:7px 8px;}
+  .ch160{height:140px;}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-icon"><i class="fa-solid fa-heart-pulse"></i></div>
+    <div class="logo-text">
+      <div class="logo-name">Longevidade</div>
+      <div class="logo-sub">painel de saúde</div>
+    </div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Saúde</div>
+    <button class="nav-item active" onclick="goPage('visao',this)"><i class="fa-solid fa-chart-pie"></i>Visão geral</button>
+    <button class="nav-item" onclick="goPage('radar',this)"><i class="fa-solid fa-radar"></i>Radar de saúde</button>
+    <button class="nav-item" onclick="goPage('tendencias',this)"><i class="fa-solid fa-chart-line"></i>Tendências</button>
+    <button class="nav-item" onclick="goPage('corpo',this)"><i class="fa-solid fa-person"></i>Composição corporal</button>
+  </div>
+  <div class="nav-group" style="margin-top:.5rem;">
+    <div class="nav-label">Ação</div>
+    <button class="nav-item" onclick="goPage('plano',this)"><i class="fa-solid fa-list-check"></i>Plano de ação</button>
+    <button class="nav-item" onclick="goPage('historico',this)"><i class="fa-solid fa-clock-rotate-left"></i>Histórico</button>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="profile">
+      <div class="avatar">UK</div>
+      <div>
+        <div class="profile-name">Urano Klock</div>
+        <div class="profile-age">39 anos · abr 2026</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Menu"><i class="fa-solid fa-bars"></i></button>
+    <span class="page-title" id="ptitle">Visão geral</span>
+    <div class="topbar-right">
+      <span class="badge-date"><i class="fa-regular fa-calendar"></i> 16 abr 2026</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══ VISÃO GERAL ═══ -->
+    <div id="pg-visao" class="page active">
+      <div class="hero">
+        <div class="hero-left">
+          <svg width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Score 73 de 100">
+            <circle cx="64" cy="64" r="52" fill="none" stroke="#C7EBE0" stroke-width="9"/>
+            <circle cx="64" cy="64" r="52" fill="none" stroke="#1D9E75" stroke-width="9"
+              stroke-dasharray="326.7" stroke-dashoffset="88.2" stroke-linecap="round" transform="rotate(-90 64 64)"/>
+            <circle cx="64" cy="64" r="36" fill="white"/>
+            <text x="64" y="58" text-anchor="middle" font-size="26" font-weight="500" fill="#085041" font-family="'Geist Mono',monospace" letter-spacing="-1">73</text>
+            <text x="64" y="74" text-anchor="middle" font-size="10" fill="#0F6E56" font-family="'Geist',sans-serif" letter-spacing=".02em">DE 100</text>
+          </svg>
+          <div style="text-align:center;">
+            <div class="hero-score-label">Saúde boa</div>
+            <div class="hero-score-sub">acima da média · 39 anos</div>
+          </div>
+        </div>
+        <div class="hero-right">
+          <div>
+            <div class="hero-name">Urano Klock</div>
+            <div class="hero-meta">39 anos · 1,83 m · 81,7 kg · Blumenau SC</div>
+            <div class="hero-desc">Composição corporal excelente — 82% de massa magra. Inflamação (PCR 0,24) e rins no verde. Atenção ao LDL subindo (73→99), triglicérides (59→90), HbA1c (5,9%) e HDL caindo (55→45). Testosterona excelente (707 ng/dL) e DHEA-S subiu (73→93). Novos marcadores: homocisteína 12,8 µmol/L (limite), Apo B 80 mg/dL, ácido úrico limítrofe (7,02).</div>
+          </div>
+          <div class="kpi-strip">
+            <div class="kpi"><div class="kpi-l"><i class="fa-solid fa-weight-scale" style="margin-right:3px;"></i>IMC</div><div class="kpi-v">24,4</div><span class="kpi-tag tok">normal</span></div>
+            <div class="kpi"><div class="kpi-l"><i class="fa-solid fa-droplet" style="margin-right:3px;"></i>HbA1c</div><div class="kpi-v">5,9%</div><span class="kpi-tag twarn">atenção</span></div>
+            <div class="kpi"><div class="kpi-l"><i class="fa-solid fa-circle-arrow-up" style="margin-right:3px;"></i>LDL</div><div class="kpi-v">99</div><span class="kpi-tag twarn">subiu</span></div>
+            <div class="kpi"><div class="kpi-l"><i class="fa-solid fa-database" style="margin-right:3px;"></i>Ferritina</div><div class="kpi-v">395</div><span class="kpi-tag twarn">alta</span></div>
+            <div class="kpi"><div class="kpi-l"><i class="fa-solid fa-bolt" style="margin-right:3px;"></i>Testo.</div><div class="kpi-v">707</div><span class="kpi-tag tok">ótima</span></div>
+            <div class="kpi"><div class="kpi-l"><i class="fa-solid fa-shield-halved" style="margin-right:3px;"></i>PCR</div><div class="kpi-v">0,24</div><span class="kpi-tag tok">ótimo</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="g2">
+        <div class="card">
+          <div class="ct">Sistemas do corpo</div>
+          <div class="mr"><div class="mr-ic mr-ic-ok"><i class="fa-solid fa-heart"></i></div><div class="mr-name">Colesterol total</div><div class="mr-val mv-ok">155 mg/dL</div><div class="mr-trend tr-dn">▼ ótimo</div></div>
+          <div class="mr"><div class="mr-ic mr-ic-warn"><i class="fa-solid fa-circle-arrow-up"></i></div><div class="mr-name">LDL (colesterol ruim)</div><div class="mr-val mv-warn">99 mg/dL</div><div class="mr-trend tr-up">▲ +26</div></div>
+          <div class="mr"><div class="mr-ic mr-ic-warn"><i class="fa-solid fa-heart-crack"></i></div><div class="mr-name">HDL (colesterol bom)</div><div class="mr-val mv-warn">45 mg/dL</div><div class="mr-trend tr-up">▼ -10</div></div>
+          <div class="mr"><div class="mr-ic mr-ic-warn"><i class="fa-solid fa-water"></i></div><div class="mr-name">Triglicérides</div><div class="mr-val mv-warn">90 mg/dL</div><div class="mr-trend tr-up">▲ +31</div></div>
+          <div class="mr"><div class="mr-ic mr-ic-ok"><i class="fa-solid fa-bolt"></i></div><div class="mr-name">Testosterona</div><div class="mr-val mv-ok">707 ng/dL</div><div class="mr-trend tr-dn">▲ +47</div></div>
+          <div class="mr"><div class="mr-ic mr-ic-ok"><i class="fa-solid fa-butterfly"></i></div><div class="mr-name">Tireoide (T4 livre)</div><div class="mr-val mv-ok">0,98 ng/dL</div><div class="mr-trend">estável</div></div>
+          <div class="mr"><div class="mr-ic mr-ic-ok"><i class="fa-solid fa-shield-halved"></i></div><div class="mr-name">Inflamação (PCR)</div><div class="mr-val mv-ok">0,24 mg/L</div><div class="mr-trend">excelente</div></div>
+          <div class="mr"><div class="mr-ic mr-ic-warn"><i class="fa-solid fa-droplet"></i></div><div class="mr-name">Açúcar (HbA1c)</div><div class="mr-val mv-warn">5,9%</div><div class="mr-trend tr-up">▲ +0,5</div></div>
+          <div class="mr"><div class="mr-ic mr-ic-warn"><i class="fa-solid fa-database"></i></div><div class="mr-name">Ferritina</div><div class="mr-val mv-warn">395 ng/mL</div><div class="mr-trend tr-dn">▼ caindo</div></div>
+          <div class="mr"><div class="mr-ic mr-ic-warn"><i class="fa-solid fa-link"></i></div><div class="mr-name">Homocisteína</div><div class="mr-val mv-warn">12,8 µmol/L</div><div class="mr-trend tr-up">⚠ limite</div></div>
+          <div class="mr"><div class="mr-ic mr-ic-warn"><i class="fa-solid fa-gem"></i></div><div class="mr-name">Ácido úrico</div><div class="mr-val mv-warn">7,02 mg/dL</div><div class="mr-trend tr-up">⚠ limite</div></div>
+          <div class="mr"><div class="mr-ic mr-ic-warn"><i class="fa-solid fa-fire"></i></div><div class="mr-name">DHEA-S</div><div class="mr-val mv-warn">93 µg/dL</div><div class="mr-trend tr-dn">▲ sobe</div></div>
+        </div>
+
+        <div class="card">
+          <div class="ct">Score por área</div>
+          <div id="sbars"></div>
+          <div style="margin-top:1.5rem;">
+            <div class="ct" style="margin-bottom:.75rem;">Evolução do score geral</div>
+            <div class="leg-row">
+              <div class="leg"><div class="leg-sq" style="background:#1D9E75;"></div>Score</div>
+              <div class="leg"><div class="leg-sq" style="background:#D1D5DB;border:1px dashed #999;background:none;width:20px;height:2px;border-top:2px dashed #ccc;"></div><span style="margin-left:4px;">meta 85%</span></div>
+            </div>
+            <div class="cw ch160"><canvas id="c-evo" role="img" aria-label="Evolução do score">Score histórico.</canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ RADAR ═══ -->
+    <div id="pg-radar" class="page">
+      <div class="g2">
+        <div class="card">
+          <div class="ct">Radar de saúde</div>
+          <div class="cs">Quanto mais preenchido o polígono, mais próximo do ideal para 39 anos.</div>
+          <div class="cw ch260"><canvas id="c-radar" role="img" aria-label="Radar de saúde">Radar de 8 dimensões.</canvas></div>
+          <div class="leg-row" style="margin-top:12px;">
+            <div class="leg"><div class="leg-sq" style="background:rgba(29,158,117,.6);"></div>Abr 2026</div>
+            <div class="leg"><div class="leg-sq" style="background:rgba(180,178,169,.4);"></div>Nov 2025</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ct">Comparativo nov/25 vs abr/26</div>
+          <div class="cs">Score percentual de cada área em relação ao ideal para 39 anos.</div>
+          <div class="cw ch260"><canvas id="c-compare" role="img" aria-label="Comparativo de períodos">Comparativo.</canvas></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ct">Escalas visuais — onde você está em cada indicador</div>
+        <div id="scale-vis" style="margin-top:.75rem;"></div>
+      </div>
+    </div>
+
+    <!-- ═══ TENDÊNCIAS ═══ -->
+    <div id="pg-tendencias" class="page">
+      <div style="margin-bottom:1rem;font-size:12px;color:var(--text3);background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:.75rem 1rem;">
+        <i class="fa-solid fa-circle-info" style="color:var(--green-mid);margin-right:6px;"></i>
+        <strong style="color:var(--text);">Série histórica completa</strong> — dados de 7 datas: mar/22 · set/22 · fev/23 · jun/25 · jul/25 · nov/25 · abr/26. Linha tracejada = referência ideal.
+      </div>
+      <div class="g2">
+        <div class="card"><div class="ct"><i class="fa-solid fa-droplet" style="color:#92400E;margin-right:6px;"></i>Açúcar — HbA1c (%)</div><div class="cs">Ideal: &lt;5,6%. Subiu e estacionou em 5,9% — atenção pré-diabetes.</div><div class="cw ch160"><canvas id="c-t1"></canvas></div></div>
+        <div class="card"><div class="ct"><i class="fa-solid fa-candy-cane" style="color:#15803D;margin-right:6px;"></i>Glicose em jejum (mg/dL)</div><div class="cs">Ideal: 70–99. Caindo consistentemente de 101 para 93 — ótimo.</div><div class="cw ch160"><canvas id="c-t6"></canvas></div></div>
+      </div>
+      <div class="g2">
+        <div class="card"><div class="ct"><i class="fa-solid fa-heart" style="color:#15803D;margin-right:6px;"></i>Colesterol total (mg/dL)</div><div class="cs">Ideal: &lt;190. Excelente queda: 202 → 155 mg/dL.</div><div class="cw ch160"><canvas id="c-t3"></canvas></div></div>
+        <div class="card"><div class="ct"><i class="fa-solid fa-circle-arrow-up" style="color:#92400E;margin-right:6px;"></i>LDL — colesterol ruim (mg/dL)</div><div class="cs">Ideal: &lt;100. Caiu para 73, mas voltou a subir para 99 — vigiar.</div><div class="cw ch160"><canvas id="c-t7"></canvas></div></div>
+      </div>
+      <div class="g2">
+        <div class="card"><div class="ct"><i class="fa-solid fa-heart-pulse" style="color:#92400E;margin-right:6px;"></i>HDL — colesterol bom (mg/dL)</div><div class="cs">Ideal: &gt;40. Estava subindo, caiu para 45 — precisa de aeróbico.</div><div class="cw ch160"><canvas id="c-t4"></canvas></div></div>
+        <div class="card"><div class="ct"><i class="fa-solid fa-water" style="color:#92400E;margin-right:6px;"></i>Triglicérides (mg/dL)</div><div class="cs">Ideal: &lt;150. Caiu bem, mas voltou a subir: 59 → 90 mg/dL.</div><div class="cw ch160"><canvas id="c-t8"></canvas></div></div>
+      </div>
+      <div class="g2">
+        <div class="card"><div class="ct"><i class="fa-solid fa-database" style="color:#92400E;margin-right:6px;"></i>Ferritina (ng/mL)</div><div class="cs">Ideal: &lt;274. Cronicamente alta — ferritina voltou a subir (350→395).</div><div class="cw ch160"><canvas id="c-t2"></canvas></div></div>
+        <div class="card"><div class="ct"><i class="fa-solid fa-magnet" style="color:#92400E;margin-right:6px;"></i>Ferro sérico (mcg/dL)</div><div class="cs">Ideal: 60–160. Despencou de 161 para 83 — padrão dissociado da ferritina.</div><div class="cw ch160"><canvas id="c-t12"></canvas></div></div>
+      </div>
+      <div class="g2">
+        <div class="card"><div class="ct"><i class="fa-solid fa-bolt" style="color:#15803D;margin-right:6px;"></i>Testosterona total (ng/dL)</div><div class="cs">Ideal: 142–923. Subiu de 659 para 707 — excelente para 39 anos.</div><div class="cw ch160"><canvas id="c-t5"></canvas></div></div>
+        <div class="card"><div class="ct"><i class="fa-solid fa-butterfly" style="color:#15803D;margin-right:6px;"></i>TSH — tireoide (µUI/mL)</div><div class="cs">Ideal: 0,35–4,94. Oscila, voltou ao centro (1,02) — estável.</div><div class="cw ch160"><canvas id="c-t9"></canvas></div></div>
+      </div>
+      <div class="g2">
+        <div class="card"><div class="ct"><i class="fa-solid fa-shield-halved" style="color:#15803D;margin-right:6px;"></i>PCR — inflamação (mg/L)</div><div class="cs">Ideal: &lt;1,0. Caindo desde 2022 — inflamação sob controle.</div><div class="cw ch160"><canvas id="c-t10"></canvas></div></div>
+        <div class="card"><div class="ct"><i class="fa-solid fa-sun" style="color:#92400E;margin-right:6px;"></i>Vitamina D (ng/mL)</div><div class="cs">Ideal: 30–60. Caindo levemente — 30,8 ng/mL, no limite inferior.</div><div class="cw ch160"><canvas id="c-t11"></canvas></div></div>
+      </div>
+      <div class="g2">
+        <div class="card"><div class="ct"><i class="fa-solid fa-flask" style="color:#15803D;margin-right:6px;"></i>Creatinina — rins (mg/dL)</div><div class="cs">Ideal: 0,60–1,10. Estável e saudável — função renal perfeita.</div><div class="cw ch160"><canvas id="c-t13"></canvas></div></div>
+        <div class="card"><div class="ct"><i class="fa-solid fa-pills" style="color:#15803D;margin-right:6px;"></i>Vitamina B12 (pg/mL)</div><div class="cs">Ideal: 187–883. Subiu de 397 para 535 — boa resposta à suplementação.</div><div class="cw ch160"><canvas id="c-t14"></canvas></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ CORPO ═══ -->
+    <div id="pg-corpo" class="page">
+      <div class="g2">
+        <div class="card">
+          <div class="ct"><i class="fa-solid fa-person" style="color:var(--green-mid);margin-right:6px;"></i>Composição corporal — jan 2026</div>
+          <div class="cs">Avaliação com Nutricionista Vanessa Raitz · CRN 7322</div>
+          <div class="body-visual">
+            <svg width="88" height="196" viewBox="0 0 88 196" role="img" aria-label="Silhueta corporal">
+              <ellipse cx="44" cy="21" rx="15" ry="15" fill="#E1F5EE" stroke="#1D9E75" stroke-width="1.5"/>
+              <rect x="24" y="38" width="40" height="62" rx="8" fill="#E1F5EE" stroke="#1D9E75" stroke-width="1.5"/>
+              <rect x="17" y="41" width="12" height="46" rx="6" fill="#9FE1CB" stroke="#1D9E75" stroke-width="1"/>
+              <rect x="59" y="41" width="12" height="46" rx="6" fill="#9FE1CB" stroke="#1D9E75" stroke-width="1"/>
+              <rect x="27" y="102" width="14" height="64" rx="7" fill="#E1F5EE" stroke="#1D9E75" stroke-width="1.5"/>
+              <rect x="47" y="102" width="14" height="64" rx="7" fill="#E1F5EE" stroke="#1D9E75" stroke-width="1.5"/>
+              <rect x="27" y="68" width="34" height="24" rx="5" fill="none" stroke="#EF9F27" stroke-width="1.5" stroke-dasharray="3,2"/>
+              <text x="44" y="84" text-anchor="middle" font-size="8" fill="#92400E" font-family="'Geist',sans-serif">abdômen</text>
+            </svg>
+            <div class="bstats">
+              <div class="bs"><div class="bs-l">Peso</div><div class="bs-v">81,7 kg</div></div>
+              <div class="bs"><div class="bs-l">Altura</div><div class="bs-v">1,83 m</div></div>
+              <div class="bs"><div class="bs-l">IMC</div><div class="bs-v" style="color:var(--green-mid);">24,4</div><div class="bs-r">normal</div></div>
+              <div class="bs"><div class="bs-l">Gordura</div><div class="bs-v">17,6%</div><div class="bs-r">14,4 kg</div></div>
+              <div class="bs"><div class="bs-l"><i class="fa-solid fa-dumbbell" style="font-size:9px;"></i> Músculo</div><div class="bs-v" style="color:var(--green-mid);">82,4%</div><div class="bs-r">67,3 kg</div></div>
+              <div class="bs"><div class="bs-l">Cintura</div><div class="bs-v">88,5 cm</div><div class="bs-r" style="color:var(--green-mid);">✓ &lt;94</div></div>
+              <div class="bs"><div class="bs-l"><i class="fa-solid fa-triangle-exclamation" style="font-size:9px;color:#92400E;"></i> Abdômen</div><div class="bs-v" style="color:var(--amber);">95,0 cm</div><div class="bs-r" style="color:var(--amber);">⚠ &gt;94</div></div>
+              <div class="bs"><div class="bs-l">Razão C/Q</div><div class="bs-v">0,87</div><div class="bs-r" style="color:var(--green-mid);">✓ &lt;0,90</div></div>
+            </div>
+          </div>
+          <div class="comp-bar">
+            <div class="comp-m" style="width:82.4%;">82,4% músculo</div>
+            <div class="comp-f" style="width:17.6%;">17,6%</div>
+          </div>
+          <div style="display:flex;gap:14px;font-size:11px;color:var(--text3);">
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:var(--green);border-radius:2px;display:inline-block;"></span>67,34 kg de músculo</span>
+            <span style="display:flex;align-items:center;gap:4px;"><span style="width:8px;height:8px;background:var(--amber-mid);border-radius:2px;display:inline-block;"></span>14,36 kg de gordura</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ct">Você vs perfis de homens de 39 anos</div>
+          <div class="cw ch180" style="margin-bottom:1.25rem;"><canvas id="c-corpo" role="img" aria-label="Comparativo corporal">Comparativo.</canvas></div>
+          <div class="faixa">
+            <div class="fc" style="background:#DBEAFE;"><div class="fc-t" style="color:#1E40AF;">Atleta</div><div class="fc-v" style="color:#1D4ED8;">&lt;13%</div></div>
+            <div class="fc" style="background:#DCFCE7;border:2.5px solid #1D9E75;"><div class="fc-t" style="color:#15803D;">Em forma</div><div class="fc-v" style="color:#15803D;">13–20%</div><div class="fc-you" style="color:#15803D;">← você 17,6%</div></div>
+            <div class="fc" style="background:#FEF3C7;"><div class="fc-t" style="color:#92400E;">Acima</div><div class="fc-v" style="color:#92400E;">21–25%</div></div>
+            <div class="fc" style="background:#FEE2E2;"><div class="fc-t" style="color:#991B1B;">Obesidade</div><div class="fc-v" style="color:#991B1B;">&gt;25%</div></div>
+          </div>
+          <div style="margin-top:1.25rem;">
+            <div class="ct" style="margin-bottom:.75rem;">Circunferências</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:12px;">
+              <span style="color:var(--text3);">Ombro</span><span style="font-weight:500;font-family:var(--mono);">116,0 cm</span>
+              <span style="color:var(--text3);">Peitoral</span><span style="font-weight:500;font-family:var(--mono);">100,5 cm</span>
+              <span style="color:var(--text3);">Quadril</span><span style="font-weight:500;font-family:var(--mono);">102,0 cm</span>
+              <span style="color:var(--text3);">Coxa dir.</span><span style="font-weight:500;font-family:var(--mono);">58,0 cm</span>
+              <span style="color:var(--text3);">Panturrilha</span><span style="font-weight:500;font-family:var(--mono);">39,7 cm</span>
+              <span style="color:var(--text3);">Braço relax.</span><span style="font-weight:500;font-family:var(--mono);">34,7 cm</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PLANO ═══ -->
+    <div id="pg-plano" class="page">
+      <div class="tip-grid">
+        <div class="tip-card"><div class="tip-ic tip-ic-red"><i class="fa-solid fa-circle-arrow-up"></i></div><span class="tip-pri pu">urgente</span><div class="tip-title">LDL subiu para 99 mg/dL</div><div class="tip-body">Estava em 73 (nov/25) e subiu para 99. Junto com triglicérides saltando de 59 para 90 e HDL caindo para 45 — o perfil lipídico piorou. Revisar consumo de ultraprocessados, carboidratos refinados e gorduras saturadas.</div><div class="tip-meta"><i class="fa-regular fa-calendar"></i> Meta: LDL &lt;90 mg/dL em out/2026</div></div>
+        <div class="tip-card"><div class="tip-ic tip-ic-red"><i class="fa-solid fa-person-running"></i></div><span class="tip-pri pu">urgente</span><div class="tip-title">Aeróbico para HDL e TG</div><div class="tip-body">HDL caiu de 55→45 e triglicérides subiram de 59→90. O exercício aeróbico é o remédio mais eficaz: 150 min/semana de intensidade moderada eleva o HDL e reduz triglicérides diretamente.</div><div class="tip-meta"><i class="fa-solid fa-bullseye"></i> HDL &gt;50, TG &lt;70 mg/dL</div></div>
+        <div class="tip-card"><div class="tip-ic tip-ic-red"><i class="fa-solid fa-droplet"></i></div><span class="tip-pri pu">urgente</span><div class="tip-title">HbA1c parado em 5,9%</div><div class="tip-body">Segundo exame consecutivo em 5,9% — limite do pré-diabetes (6%). Frutosamina baixa (191 µmol/L, ref 205–285) sugere glicemia 2–3 semanas anterior também boa, mas HbA1c reflete 3 meses. Reduzir carboidratos refinados.</div><div class="tip-meta"><i class="fa-regular fa-calendar"></i> Meta: &lt;5,6% em out/2026</div></div>
+        <div class="tip-card"><div class="tip-ic tip-ic-amber"><i class="fa-solid fa-link"></i></div><span class="tip-pri ph">importante</span><div class="tip-title">Homocisteína 12,8 µmol/L</div><div class="tip-body">Novo marcador — próxima do limite (ref: até 16,2). Homocisteína elevada é fator de risco cardiovascular independente. Suplementar vitamina B6, B9 (ácido fólico 9,4 ng/mL — ok) e B12 (535 — ok). Revisar com médico.</div><div class="tip-meta"><i class="fa-solid fa-bullseye"></i> Meta: &lt;10 µmol/L</div></div>
+        <div class="tip-card"><div class="tip-ic tip-ic-amber"><i class="fa-solid fa-gem"></i></div><span class="tip-pri ph">importante</span><div class="tip-title">Ácido úrico 7,02 mg/dL</div><div class="tip-body">No limite superior (ref: 3,5–7,2). Ácido úrico elevado está associado a gota, hipertensão e síndrome metabólica. Reduzir frutosamina, álcool e carnes processadas. Aumentar hidratação e vegetais.</div><div class="tip-meta"><i class="fa-solid fa-bullseye"></i> Meta: &lt;6,5 mg/dL</div></div>
+        <div class="tip-card"><div class="tip-ic tip-ic-amber"><i class="fa-solid fa-database"></i></div><span class="tip-pri ph">importante</span><div class="tip-title">Ferritina voltou a subir (395)</div><div class="tip-body">Estava caindo (555→350), mas voltou a subir para 395. Ferro sérico caiu de 161 para 83 mcg/dL — padrão típico de inflamação crônica ou deficiência funcional. Investigar causa com hematologista.</div><div class="tip-meta"><i class="fa-regular fa-calendar"></i> Consulta urgente</div></div>
+      </div>
+
+      <div class="card">
+        <div class="ct"><i class="fa-solid fa-flag-checkered" style="color:var(--green-mid);margin-right:6px;"></i>Metas para outubro 2026</div>
+        <div style="margin-top:.75rem;">
+          <div class="meta-row"><div class="meta-ic" style="background:#FEE2E2;"><i class="fa-solid fa-circle-arrow-up" style="color:#991B1B;font-size:12px;"></i></div><div class="meta-name">LDL</div><div class="meta-now">99 mg/dL agora</div><div class="meta-arr">→</div><div class="meta-goal">abaixo de 90 mg/dL</div></div>
+          <div class="meta-row"><div class="meta-ic" style="background:#FEF3C7;"><i class="fa-solid fa-heart-crack" style="color:#92400E;font-size:12px;"></i></div><div class="meta-name">HDL</div><div class="meta-now">45 mg/dL agora</div><div class="meta-arr">→</div><div class="meta-goal">acima de 52 mg/dL</div></div>
+          <div class="meta-row"><div class="meta-ic" style="background:#FEF3C7;"><i class="fa-solid fa-water" style="color:#92400E;font-size:12px;"></i></div><div class="meta-name">Triglicérides</div><div class="meta-now">90 mg/dL agora</div><div class="meta-arr">→</div><div class="meta-goal">abaixo de 70 mg/dL</div></div>
+          <div class="meta-row"><div class="meta-ic" style="background:#FEF3C7;"><i class="fa-solid fa-droplet" style="color:#92400E;font-size:12px;"></i></div><div class="meta-name">HbA1c</div><div class="meta-now">5,9% agora</div><div class="meta-arr">→</div><div class="meta-goal">abaixo de 5,6%</div></div>
+          <div class="meta-row"><div class="meta-ic" style="background:#FEF3C7;"><i class="fa-solid fa-link" style="color:#92400E;font-size:12px;"></i></div><div class="meta-name">Homocisteína</div><div class="meta-now">12,8 µmol/L agora</div><div class="meta-arr">→</div><div class="meta-goal">abaixo de 10 µmol/L</div></div>
+          <div class="meta-row"><div class="meta-ic" style="background:#FEF3C7;"><i class="fa-solid fa-database" style="color:#92400E;font-size:12px;"></i></div><div class="meta-name">Ferritina</div><div class="meta-now">395 ng/mL agora</div><div class="meta-arr">→</div><div class="meta-goal">abaixo de 300 ng/mL</div></div>
+          <div class="meta-row"><div class="meta-ic" style="background:#DCFCE7;"><i class="fa-solid fa-chart-simple" style="color:#15803D;font-size:12px;"></i></div><div class="meta-name">Score de saúde</div><div class="meta-now">73 pts agora</div><div class="meta-arr">→</div><div class="meta-goal">acima de 80 pts</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ HISTÓRICO ═══ -->
+    <div id="pg-historico" class="page">
+      <div class="card">
+        <div class="ct"><i class="fa-solid fa-clock-rotate-left" style="color:var(--green-mid);margin-right:6px;"></i>Histórico completo de exames</div>
+        <div class="cs">Exame Abr/2026 coletado em 16/04/2026 — Laboratório Santa Isabel · Solicitante: Dra. Lessandra Esper Abdala Gomes</div>
+        <div style="overflow-x:auto;">
+          <table class="ctable">
+            <thead><tr><th>Indicador</th><th>Abr 2026</th><th>Nov 2025</th><th>Jul 2025</th><th>Jun 2025</th><th>Fev 2023</th><th>Variação</th></tr></thead>
+            <tbody>
+              <tr style="background:#FEF9EC;"><td colspan="7" style="font-size:11px;font-weight:600;color:#92400E;padding:6px 12px;">🩸 METABOLISMO DO AÇÚCAR</td></tr>
+              <tr><td>HbA1c (%)</td><td>5,9</td><td>5,4</td><td>—</td><td>—</td><td>—</td><td><span class="dup">▲ +0,5</span></td></tr>
+              <tr><td>Glicose (mg/dL)</td><td>93</td><td>97</td><td>98</td><td>99</td><td>101</td><td><span class="ddn">▼ -4</span></td></tr>
+              <tr><td>Insulina (µU/mL)</td><td>5,1</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dok">novo ✓</span></td></tr>
+              <tr><td>HOMA-IR</td><td>1,17</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dok">novo ✓</span></td></tr>
+              <tr><td>Frutosamina (µmol/L)</td><td>191 ⚠</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dup">abaixo ref</span></td></tr>
+
+              <tr style="background:#F0FDF4;"><td colspan="7" style="font-size:11px;font-weight:600;color:#15803D;padding:6px 12px;">❤️ CORAÇÃO E LIPÍDIOS</td></tr>
+              <tr><td>Colesterol total (mg/dL)</td><td>155</td><td>170</td><td>183</td><td>202</td><td>187</td><td><span class="ddn">▼ -15 ✓</span></td></tr>
+              <tr><td>LDL (mg/dL)</td><td><strong style="color:#92400E;">99</strong></td><td>73</td><td>90</td><td>103</td><td>93</td><td><span class="dup">▲ +26 ⚠</span></td></tr>
+              <tr><td>HDL (mg/dL)</td><td>45</td><td>55</td><td>56</td><td>54</td><td>43</td><td><span class="dup">▼ -10 ⚠</span></td></tr>
+              <tr><td>Triglicérides (mg/dL)</td><td><strong style="color:#92400E;">90</strong></td><td>59</td><td>70</td><td>69</td><td>91</td><td><span class="dup">▲ +31 ⚠</span></td></tr>
+              <tr><td>VLDL (mg/dL)</td><td>30</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dok">novo ✓</span></td></tr>
+              <tr><td>Apo A-1 (mg/dL)</td><td>114</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dok">novo ✓</span></td></tr>
+              <tr><td>Apo B (mg/dL)</td><td>80</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dok">novo ✓</span></td></tr>
+              <tr><td>Homocisteína (µmol/L)</td><td>12,8</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dup">novo ⚠ limite</span></td></tr>
+              <tr><td>Fibrinogênio (mg/dL)</td><td>270</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dok">novo ✓</span></td></tr>
+              <tr><td>PCR (mg/L)</td><td>0,24</td><td>0,26</td><td>—</td><td>—</td><td>—</td><td><span class="dok">≈ estável ✓</span></td></tr>
+
+              <tr style="background:#F5F3FF;"><td colspan="7" style="font-size:11px;font-weight:600;color:#5B21B6;padding:6px 12px;">⚡ HORMÔNIOS</td></tr>
+              <tr><td>Testosterona total (ng/dL)</td><td>707</td><td>659</td><td>—</td><td>—</td><td>—</td><td><span class="ddn">▲ +47 ✓</span></td></tr>
+              <tr><td>Testosterona livre (ng/dL)</td><td>13,3</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dok">novo ✓</span></td></tr>
+              <tr><td>DHT (pg/mL)</td><td>407</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dok">novo ✓</span></td></tr>
+              <tr><td>DHEA-S (µg/dL)</td><td>93</td><td>73</td><td>—</td><td>—</td><td>—</td><td><span class="ddn">▲ +20 ✓</span></td></tr>
+              <tr><td>Estradiol E2 (pg/mL)</td><td>39</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dup">novo ⚠ alto</span></td></tr>
+              <tr><td>Progesterona (ng/mL)</td><td>0,83</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dok">novo ✓</span></td></tr>
+              <tr><td>Prolactina (ng/mL)</td><td>10,48</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dok">novo ✓</span></td></tr>
+              <tr><td>LH (µUI/mL)</td><td>1,37</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dok">novo ✓</span></td></tr>
+              <tr><td>FSH (µUI/mL)</td><td>2,72</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dok">novo ✓</span></td></tr>
+              <tr><td>Cortisol (µg/dL)</td><td>13,3</td><td>14,9</td><td>—</td><td>—</td><td>—</td><td><span class="dok">≈ estável</span></td></tr>
+              <tr><td>PTH molécula intacta (pg/mL)</td><td>47,5</td><td>43,1</td><td>—</td><td>—</td><td>—</td><td><span class="ddn">▲ ok</span></td></tr>
+
+              <tr style="background:#FFF7ED;"><td colspan="7" style="font-size:11px;font-weight:600;color:#C2410C;padding:6px 12px;">🦋 TIREOIDE</td></tr>
+              <tr><td>T4 Livre (ng/dL)</td><td>0,98</td><td>0,80</td><td>1,26</td><td>1,13</td><td>0,94</td><td><span class="dok">↑ melhora</span></td></tr>
+              <tr><td>T3 Total (ng/dL)</td><td>90,1</td><td>—</td><td>116,5</td><td>—</td><td>101,1</td><td><span class="dup">▼ caindo</span></td></tr>
+              <tr><td>Anti-Tireoglobulina</td><td>&lt;1,00 UI/mL</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dok">novo ✓</span></td></tr>
+              <tr><td>TSH (µUI/mL)</td><td>1,02*</td><td>0,56</td><td>1,03</td><td>2,04</td><td>1,06</td><td><span class="dok">normalizado</span></td></tr>
+
+              <tr style="background:#F0F9FF;"><td colspan="7" style="font-size:11px;font-weight:600;color:#0369A1;padding:6px 12px;">🫘 RINS E FÍGADO</td></tr>
+              <tr><td>Creatinina (mg/dL)</td><td>0,96</td><td>0,93</td><td>0,82</td><td>1,00</td><td>1,02</td><td><span class="dok">≈ estável ✓</span></td></tr>
+              <tr><td>eTFG</td><td>&gt;60</td><td>&gt;60</td><td>&gt;60</td><td>&gt;60</td><td>&gt;60</td><td><span class="dok">ótimo ✓</span></td></tr>
+              <tr><td>Ureia (mg/dL)</td><td>45</td><td>40</td><td>26</td><td>30</td><td>—</td><td><span class="ddn">▲ ok</span></td></tr>
+              <tr><td>AST/TGO (U/L)</td><td>13</td><td>19</td><td>15</td><td>16</td><td>14</td><td><span class="ddn">▼ excelente</span></td></tr>
+              <tr><td>ALT/TGP (U/L)</td><td>11</td><td>19</td><td>9</td><td>14</td><td>8</td><td><span class="ddn">▼ ótimo</span></td></tr>
+              <tr><td>Gama GT (U/L)</td><td>14</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dok">novo ✓</span></td></tr>
+              <tr><td>Bilirrubina total (mg/dL)</td><td>0,37</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dok">novo ✓</span></td></tr>
+              <tr><td>Ácido Úrico (mg/dL)</td><td>7,02</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dup">novo ⚠ limite</span></td></tr>
+              <tr><td>CPK (U/L)</td><td>80</td><td>151</td><td>74</td><td>82</td><td>108</td><td><span class="ddn">▼ -71 ✓</span></td></tr>
+
+              <tr style="background:#F0FDF4;"><td colspan="7" style="font-size:11px;font-weight:600;color:#166534;padding:6px 12px;">🩸 FERRO E RESERVAS</td></tr>
+              <tr><td>Ferritina (ng/mL)</td><td>395</td><td>350</td><td>522</td><td>555</td><td>464</td><td><span class="dup">▲ voltou subir</span></td></tr>
+              <tr><td>Ferro sérico (mcg/dL)</td><td>83</td><td>161</td><td>127</td><td>91</td><td>110</td><td><span class="dup">▼ -78 ⚠</span></td></tr>
+
+              <tr style="background:#FDF4FF;"><td colspan="7" style="font-size:11px;font-weight:600;color:#7E22CE;padding:6px 12px;">💊 VITAMINAS E MINERAIS</td></tr>
+              <tr><td>Vitamina B12 (pg/mL)</td><td>535*</td><td>403</td><td>—</td><td>—</td><td>—</td><td><span class="ddn">▲ +132 ✓</span></td></tr>
+              <tr><td>Vitamina D (ng/mL)</td><td>30,8*</td><td>32,2</td><td>—</td><td>—</td><td>—</td><td><span class="dok">≈ estável</span></td></tr>
+              <tr><td>Ácido Fólico B9 (ng/mL)</td><td>9,40</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dok">novo ✓</span></td></tr>
+              <tr><td>Magnésio (mg/dL)</td><td>2,11</td><td>2,11</td><td>—</td><td>—</td><td>—</td><td><span class="dok">≈ estável ✓</span></td></tr>
+              <tr><td>Cálcio total (mg/dL)</td><td>9,02</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dok">novo ✓</span></td></tr>
+              <tr><td>Cálcio iônico (mmol/L)</td><td>1,15</td><td>1,19</td><td>1,26</td><td>—</td><td>—</td><td><span class="ddn">▼ ok</span></td></tr>
+              <tr><td>Sódio (mmol/L)</td><td>140</td><td>140</td><td>144</td><td>—</td><td>—</td><td><span class="dok">estável ✓</span></td></tr>
+              <tr><td>Potássio (mmol/L)</td><td>4,1</td><td>4,0</td><td>3,9</td><td>3,8</td><td>4,3</td><td><span class="dok">estável ✓</span></td></tr>
+              <tr><td>Fósforo (mg/dL)</td><td>3,7</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="dok">novo ✓</span></td></tr>
+
+              <tr style="background:#F9FFFE;"><td colspan="7" style="font-size:11px;font-weight:600;color:#0F6E56;padding:6px 12px;">🏋️ COMPOSIÇÃO CORPORAL</td></tr>
+              <tr><td>IMC</td><td colspan="5">24,4 (jan/2026)</td><td><span class="dok">normal ✓</span></td></tr>
+              <tr><td>Gordura corporal</td><td colspan="5">17,6% · 14,36 kg (jan/2026)</td><td><span class="ddn">em forma ✓</span></td></tr>
+              <tr><td>Massa magra</td><td colspan="5">82,4% · 67,34 kg (jan/2026)</td><td><span class="ddn">excelente ✓</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top:1rem;font-size:11px;color:var(--text3);">* Valores marcados com * são de exames anteriores ainda válidos. ⚠ = requer atenção.</div>
+      </div>
+    </div>
+
+  </div>
+</main>
+</div>
+
+<script>
+var CH={};
+var PTITLES={visao:'Visão geral',radar:'Radar de saúde',tendencias:'Tendências',corpo:'Composição corporal',plano:'Plano de ação',historico:'Histórico completo'};
+
+function toggleSidebar(){
+  var s=document.querySelector('.sidebar');
+  var o=document.getElementById('overlay');
+  var open=s.classList.toggle('open');
+  if(open){o.classList.add('open');}else{o.classList.remove('open');}
+}
+function closeSidebar(){
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+
+function goPage(id,btn){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nav-item').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('pg-'+id).classList.add('active');
+  btn.classList.add('active');
+  document.getElementById('ptitle').textContent=PTITLES[id]||'';
+  Object.values(CH).forEach(function(c){try{c.destroy();}catch(e){}});
+  CH={};
+  closeSidebar();
+  setTimeout(function(){build(id);},80);
+}
+
+var SBARS=[
+  {l:'Composição corporal',p:92,c:'#1D9E75'},
+  {l:'Rins e fígado',p:97,c:'#1D9E75'},
+  {l:'Inflamação',p:97,c:'#1D9E75'},
+  {l:'Tireoide e vitaminas',p:85,c:'#1D9E75'},
+  {l:'Hormônios',p:82,c:'#1D9E75'},
+  {l:'Coração e lipídios',p:68,c:'#EF9F27'},
+  {l:'Metabolismo do açúcar',p:60,c:'#EF9F27'},
+  {l:'Ferro e reservas',p:52,c:'#EF9F27'}
+];
+
+function renderSbars(){
+  var el=document.getElementById('sbars');
+  if(!el)return;
+  var h='';
+  SBARS.forEach(function(s){
+    var tc=s.p>=70?'#15803D':'#92400E';
+    h+='<div class="sb-row">'+
+      '<div class="sb-head"><span class="sb-label">'+s.l+'</span><span class="sb-pct" style="color:'+tc+';">'+s.p+'%</span></div>'+
+      '<div class="sb-track"><div class="sb-fill" style="width:'+s.p+'%;background:'+s.c+';"></div></div></div>';
+  });
+  el.innerHTML=h;
+}
+
+var BASE={
+  responsive:true,
+  maintainAspectRatio:false,
+  plugins:{legend:{display:false}},
+  scales:{
+    y:{ticks:{font:{size:11,family:"'Geist Mono'"},color:'#999'},grid:{color:'rgba(0,0,0,0.04)'}},
+    x:{ticks:{font:{size:11,family:"'Geist Mono'"},color:'#999',autoSkip:false,maxRotation:30},grid:{display:false}}
+  }
+};
+
+function mkOpts(extra){
+  return Object.assign({},BASE,extra||{});
+}
+
+function mkYOpts(min,max,suffix){
+  return mkOpts({
+    scales:Object.assign({},BASE.scales,{
+      y:Object.assign({},BASE.scales.y,{
+        min:min,
+        max:max,
+        ticks:Object.assign({},BASE.scales.y.ticks,{
+          callback:function(v){return v+(suffix||'');}
+        })
+      })
+    })
+  });
+}
+
+function ln(id,labels,data,color,ref){
+  var ctx=document.getElementById(id);
+  if(!ctx)return;
+  var ds=[{
+    label:'Valor',
+    data:data,
+    borderColor:color,
+    backgroundColor:color+'18',
+    pointBackgroundColor:color,
+    pointRadius:5,
+    pointHoverRadius:7,
+    tension:0.38,
+    fill:true,
+    borderWidth:2
+  }];
+  if(ref!=null){
+    ds.push({
+      label:'Ref',
+      data:labels.map(function(){return ref;}),
+      borderColor:'#D1D5DB',
+      borderDash:[5,4],
+      pointRadius:0,
+      tension:0,
+      fill:false,
+      borderWidth:1.5
+    });
+  }
+  CH[id]=new Chart(ctx,{type:'line',data:{labels:labels,datasets:ds},options:BASE});
+}
+
+function build(page){
+
+  /* ── VISÃO GERAL ── */
+  if(page==='visao'){
+    renderSbars();
+    var ctx=document.getElementById('c-evo');
+    if(ctx){
+      CH['c-evo']=new Chart(ctx,{
+        type:'line',
+        data:{
+          labels:['mar/22','set/22','fev/23','jun/25','jul/25','nov/25','abr/26'],
+          datasets:[
+            {label:'Score',data:[63,65,68,71,72,75,73],borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,0.07)',pointBackgroundColor:'#1D9E75',pointRadius:5,tension:0.4,fill:true,borderWidth:2},
+            {label:'Meta',data:[85,85,85,85,85,85,85],borderColor:'#D1D5DB',borderDash:[5,4],pointRadius:0,tension:0,fill:false,borderWidth:1.5}
+          ]
+        },
+        options:mkYOpts(55,100,'pts')
+      });
+    }
+  }
+
+  /* ── RADAR ── */
+  if(page==='radar'){
+    var rc=document.getElementById('c-radar');
+    if(rc){
+      CH['c-radar']=new Chart(rc,{
+        type:'radar',
+        data:{
+          labels:['Coração','Hormônios','Corpo','Vitaminas','Rins/Fígado','Inflamação','Açúcar','Ferro'],
+          datasets:[
+            {label:'Abr 2026',data:[68,82,92,85,97,97,60,52],borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,0.12)',pointBackgroundColor:'#1D9E75',pointRadius:4,borderWidth:2},
+            {label:'Nov 2025',data:[80,76,92,88,95,97,58,55],borderColor:'#D1D5DB',backgroundColor:'rgba(209,213,219,0.06)',pointBackgroundColor:'#D1D5DB',pointRadius:3,borderWidth:1.5,borderDash:[4,3]}
+          ]
+        },
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{r:{min:0,max:100,ticks:{display:false},grid:{color:'rgba(0,0,0,0.06)'},pointLabels:{font:{size:11,family:"'Geist'"},color:'#555'}}}
+        }
+      });
+    }
+
+    var cc=document.getElementById('c-compare');
+    if(cc){
+      CH['c-compare']=new Chart(cc,{
+        type:'bar',
+        data:{
+          labels:['HbA1c','Ferritina','Testo.','HDL','LDL','Trigl.','PCR','Homocist.'],
+          datasets:[
+            {label:'Nov 2025',data:[95,63,95,100,100,100,100,null],backgroundColor:'rgba(209,213,219,0.55)',borderColor:'#D1D5DB',borderWidth:1,borderRadius:4},
+            {label:'Abr 2026',data:[82,68,100,82,57,79,100,73],backgroundColor:'rgba(29,158,117,0.6)',borderColor:'#1D9E75',borderWidth:1,borderRadius:4}
+          ]
+        },
+        options:mkOpts({
+          plugins:{legend:{display:true,position:'top',labels:{font:{size:11,family:"'Geist'"},color:'#999',boxWidth:10,padding:12}}},
+          scales:Object.assign({},BASE.scales,{
+            y:Object.assign({},BASE.scales.y,{
+              min:0,max:115,
+              ticks:Object.assign({},BASE.scales.y.ticks,{callback:function(v){return v+'%';}})
+            })
+          })
+        })
+      });
+    }
+
+    var SCALES=[
+      {name:'HbA1c (%)',min:4,max:7,ok:[4,5.6],val:5.9,prev:5.4,c:'#EF9F27'},
+      {name:'Ferritina (ng/mL)',min:0,max:620,ok:[21,274],val:395,prev:350,c:'#EF9F27'},
+      {name:'Testosterona (ng/dL)',min:0,max:1000,ok:[142,923],val:706,prev:659,c:'#1D9E75'},
+      {name:'HDL (mg/dL)',min:20,max:80,ok:[40,80],val:45,prev:55,c:'#EF9F27'},
+      {name:'LDL (mg/dL)',min:40,max:160,ok:[40,100],val:99,prev:73,c:'#EF9F27'},
+      {name:'Triglicérides (mg/dL)',min:0,max:200,ok:[0,150],val:90,prev:59,c:'#EF9F27'},
+      {name:'Colesterol total (mg/dL)',min:100,max:280,ok:[100,190],val:155,prev:170,c:'#1D9E75'},
+      {name:'Homocisteína (µmol/L)',min:0,max:20,ok:[5,13],val:12.83,prev:null,c:'#EF9F27'},
+      {name:'Ácido Úrico (mg/dL)',min:3,max:9,ok:[3.5,7.0],val:7.02,prev:null,c:'#EF9F27'},
+      {name:'PCR (mg/L)',min:0,max:5,ok:[0,1],val:0.24,prev:0.26,c:'#1D9E75'},
+      {name:'Insulina (µU/mL)',min:0,max:15,ok:[2.7,10.4],val:5.1,prev:null,c:'#1D9E75'}
+    ];
+    var sv=document.getElementById('scale-vis');
+    if(sv){
+      var h='';
+      SCALES.forEach(function(s){
+        function pct(v){
+          if(v==null)return '-100';
+          return Math.min(100,Math.max(0,(v-s.min)/(s.max-s.min)*100)).toFixed(1);
+        }
+        var okW=((s.ok[1]-s.ok[0])/(s.max-s.min)*100).toFixed(1);
+        var okL=((s.ok[0]-s.min)/(s.max-s.min)*100).toFixed(1);
+        var prevDot=s.prev!=null?'<div class="rb-prev" style="left:'+pct(s.prev)+'%;"></div>':'';
+        h+='<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(0,0,0,0.06);">'+
+          '<div style="font-size:12px;color:#555;width:170px;flex-shrink:0;">'+s.name+'</div>'+
+          '<div style="flex:1;position:relative;">'+
+            '<div class="rb-track">'+
+              '<div class="rb-ok" style="left:'+okL+'%;width:'+okW+'%;border-radius:2px;"></div>'+
+              '<div class="rb-dot" style="left:'+pct(s.val)+'%;background:'+s.c+';"></div>'+
+              prevDot+
+            '</div>'+
+          '</div>'+
+          '<div style="font-size:13px;font-weight:500;font-family:var(--mono);color:'+s.c+';min-width:60px;text-align:right;">'+s.val+'</div>'+
+        '</div>';
+      });
+      h+='<div style="display:flex;gap:16px;font-size:11px;color:#999;margin-top:10px;flex-wrap:wrap;">'+
+        '<span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:50%;background:#1D9E75;display:inline-block;border:2px solid white;box-shadow:0 0 0 1px #ccc;"></span>Abr 2026 (atual)</span>'+
+        '<span style="display:flex;align-items:center;gap:5px;"><span style="width:10px;height:10px;border-radius:50%;background:#D1D5DB;display:inline-block;border:2px solid white;box-shadow:0 0 0 1px #ccc;"></span>Nov 2025 (anterior)</span>'+
+        '<span style="display:flex;align-items:center;gap:5px;"><span style="width:20px;height:7px;background:#DCFCE7;border-radius:2px;display:inline-block;"></span>Zona ideal</span>'+
+      '</div>';
+      sv.innerHTML=h;
+    }
+  }
+
+  /* ── TENDÊNCIAS ── */
+  if(page==='tendencias'){
+    var L6=['mar/22','fev/23','jun/25','jul/25','nov/25','abr/26'];
+    var L5=['fev/23','jun/25','jul/25','nov/25','abr/26'];
+    /* HbA1c */
+    ln('c-t1',['nov/25','abr/26'],[5.4,5.9],'#EF9F27',5.6);
+    /* Glicose: mar/22:101, fev/23:101, jun/25:99, jul/25:98, nov/25:97, abr/26:93 */
+    ln('c-t6',L6,[101,101,99,98,97,93],'#1D9E75',99);
+    /* Colesterol total: mar/22:171, fev/23:187, jun/25:202, jul/25:183, nov/25:170, abr/26:155 */
+    ln('c-t3',L6,[171,187,202,183,170,155],'#1D9E75',190);
+    /* LDL: mar/22:97, fev/23:93, jun/25:103, jul/25:90, nov/25:73, abr/26:99 */
+    ln('c-t7',L6,[97,93,103,90,73,99],'#EF9F27',100);
+    /* HDL: mar/22:40, fev/23:43, jun/25:54, jul/25:56, nov/25:55, abr/26:45 */
+    ln('c-t4',L6,[40,43,54,56,55,45],'#EF9F27',40);
+    /* Triglicérides: fev/23:91, jun/25:69, jul/25:70, nov/25:59, abr/26:90 */
+    ln('c-t8',L5,[91,69,70,59,90],'#EF9F27',150);
+    /* Ferritina: fev/23:464.87, jun/25:555.54, jul/25:522.06, nov/25:350.70, abr/26:395.21 */
+    ln('c-t2',L5,[464.87,555.54,522.06,350.70,395.21],'#EF9F27',274);
+    /* Ferro sérico: mar/22:172, fev/23:110, jun/25:91, jul/25:127, nov/25:161, abr/26:83 */
+    ln('c-t12',L6,[172,110,91,127,161,83],'#92400E',null);
+    /* Testosterona: nov/25:659, abr/26:707 */
+    ln('c-t5',['nov/25','abr/26'],[659.27,706.73],'#1D9E75',null);
+    /* TSH: mar/22:0.49, set/22:1.33, fev/23:1.06, jun/25:2.04, jul/25:1.03, nov/25:0.56, abr/26:1.02 */
+    ln('c-t9',['mar/22','set/22','fev/23','jun/25','jul/25','nov/25','abr/26'],[0.49,1.33,1.06,2.04,1.03,0.56,1.02],'#1D9E75',null);
+    /* PCR: set/22:0.29, nov/25:0.26, abr/26:0.24 */
+    ln('c-t10',['set/22','nov/25','abr/26'],[0.29,0.26,0.24],'#1D9E75',1.0);
+    /* Vitamina D: fev/23:36.5, nov/25:32.2, abr/26:30.8 */
+    ln('c-t11',['fev/23','nov/25','abr/26'],[36.5,32.2,30.8],'#EF9F27',null);
+    /* Creatinina: mar/22:0.91, fev/23:1.02, jun/25:1.00, jul/25:0.82, nov/25:0.93, abr/26:0.96 */
+    ln('c-t13',L6,[0.91,1.02,1.00,0.82,0.93,0.96],'#1D9E75',null);
+    /* Vitamina B12: fev/23:397, nov/25:403, abr/26:535 */
+    ln('c-t14',['fev/23','nov/25','abr/26'],[397,403,535],'#1D9E75',null);
+  }
+
+  /* ── COMPOSIÇÃO CORPORAL ── */
+  if(page==='corpo'){
+    var bc=document.getElementById('c-corpo');
+    if(bc){
+      CH['c-corpo']=new Chart(bc,{
+        type:'bar',
+        data:{
+          labels:['Você','Sedentário 39a','Ativo 39a','Atleta 39a'],
+          datasets:[{
+            label:'% gordura',
+            data:[17.6,24.0,19.0,11.0],
+            backgroundColor:['rgba(29,158,117,0.75)','rgba(180,178,169,0.5)','rgba(180,178,169,0.5)','rgba(59,109,17,0.5)'],
+            borderColor:['#1D9E75','#B4B2A9','#B4B2A9','#3B6D11'],
+            borderWidth:1.5,
+            borderRadius:6
+          }]
+        },
+        options:mkYOpts(0,30,'%')
+      });
+    }
+  }
+}
+
+setTimeout(function(){build('visao');},120);
+
+</script>
+</body>
+</html>
